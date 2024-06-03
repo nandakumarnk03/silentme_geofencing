@@ -1,0 +1,71 @@
+VALUES
+
+
+colors - xml code
+
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>
+
+
+
+
+google_maps_api - xml code
+
+
+
+<resources>
+    <!--
+    TODO: Before you run your application, you need a Google Maps API key.
+
+    To get one, follow this link, follow the directions and press "Create" at the end:
+
+    https://console.developers.google.com/flows/enableapi?apiid=maps_android_backend&keyType=CLIENT_SIDE_ANDROID&r=CF:A8:7B:2B:35:40:4D:92:B3:AF:01:74:9F:DF:DE:8E:AA:4E:0B:61%3Bcom.example.app2
+
+    You can also add your credentials to an existing key, using these values:
+
+    Package name:
+    com.example.app2
+
+    SHA-1 certificate fingerprint:
+    CF:A8:7B:2B:35:40:4D:92:B3:AF:01:74:9F:DF:DE:8E:AA:4E:0B:61
+
+    Alternatively, follow the directions here:
+    https://developers.google.com/maps/documentation/android/start#get-key
+
+    Once you have your key (it starts with "AIza"), replace the "google_maps_key"
+    string in this file.
+    -->
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyBrbdnzGADow5gcjRyTJXsQOF7VXrwRqAM</string>
+</resources>
+
+
+
+
+ic_launcher_background - xml code
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_launcher_background">#113B6F</color>
+</resources>
+
+
+strings - xml code
+
+
+<resources>
+    <string name="app_name">AUTO SILENT</string>
+    <string name="silent_mode">silent_mode</string>
+    <string name="current_mode">current_mode</string>
+    <string name="title_activity_maps">Map</string>
+</resources>

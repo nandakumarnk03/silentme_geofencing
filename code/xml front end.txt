@@ -1,0 +1,110 @@
+FRONT END XML CODE of app
+
+<!--XML Code for your activity_main.xml-->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:background="@drawable/background"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+
+    <!-- Textview to display the heading of the app-->
+    <!-- Textview to display the current mode of the Ringer mode-->
+
+    <TextView
+        android:id="@+id/idTVHeading"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="484dp"
+        android:gravity="center_horizontal"
+        android:text=""
+        android:textAlignment="center"
+        android:textAllCaps="true"
+        android:textColor="@color/purple_200"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        tools:ignore="HardcodedText" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:text=""
+        android:textAllCaps="true"
+        android:textSize="20sp"
+        android:layout_marginTop="60dp"
+        android:textColor="@color/purple_200"
+        android:textStyle="bold"
+        android:id="@+id/TVCurrentMode"
+        android:gravity="center_horizontal"
+        tools:ignore="HardcodedText" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:text=""
+        android:textAllCaps="true"
+        android:textSize="20sp"
+        android:layout_marginTop="60dp"
+        android:textColor="@color/purple_200"
+        android:textStyle="bold"
+        android:id="@+id/idTVCurrentMode"
+        android:gravity="center_horizontal"
+        tools:ignore="HardcodedText" />
+
+    <ImageButton
+        android:id="@+id/idIBSilentMode"
+        android:layout_width="207dp"
+        android:layout_height="187dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="308dp"
+        android:layout_weight="1"
+        android:background="@drawable/app_logo"
+        android:contentDescription="@string/silent_mode"
+        app:tint="@color/white"
+        tools:ignore="HardcodedText" />
+
+  <!-- Button to display map-->
+
+    <Button
+        android:id="@+id/map"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="176dp"
+        android:layout_weight="1"
+        android:onClick="openMap"
+        android:text="Map" />
+
+</RelativeLayout>
+
+
+Maps front end
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<fragment xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:map="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/map"
+    android:name="com.google.android.gms.maps.SupportMapFragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MapsActivity" />

@@ -1,0 +1,515 @@
+BACK END JAVA CODE
+
+MainActivity
+
+package com.example.app2;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.app.NotificationManager;
+import android.content.Context;
+import android.content.Intent;
+import android.media.AudioManager;
+import android.os.Build;
+import android.os.Bundle;
+import android.provider.Settings;
+import android.view.View;
+import android.widget.ImageButton;
+import android.widget.TextView;
+import android.widget.Toast;
+
+public class MainActivity extends AppCompatActivity{
+         void change_mode(int rec){
+                switch (rec){
+                    case 1:
+                     audioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+                     break;
+                    default:
+                        audioManager.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
+                        break;
+                 }
+         }
+
+        public void openMap(View view){
+            Intent intentControls = new Intent(this, MapsActivity.class);
+            startActivity(intentControls);
+        }
+
+
+        // Textview to display the current ringer mode
+        TextView currentStateTV;
+        //image buttons to switch ringer mode.
+        ImageButton silentIB, vibrateIB, ringtoneIB;
+        // object class variable for audio manager class.
+        private AudioManager audioManager;
+        // current mode to store integer value of ringer mode.
+        int currentmode;
+
+       @Override
+        protected void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.activity_main);
+            currentStateTV = findViewById(R.id.idTVCurrentMode);
+            silentIB = findViewById(R.id.idIBSilentMode);
+         //   vibrateIB = findViewById(R.id.idIBVibrateMode);
+              audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            //current mode will store current mode of ringer of users device..
+          currentmode = audioManager.getRingerMode();
+
+            switch (currentmode) {
+                case AudioManager.RINGER_MODE_NORMAL:
+                    currentStateTV.setText("Ringer Mode");
+                    break;
+                case AudioManager.RINGER_MODE_SILENT:
+                    currentStateTV.setText("Silent Mode");
+                    break;
+                case AudioManager.RINGER_MODE_VIBRATE:
+                    currentStateTV.setText("Vibrate Mode");
+                    break;
+                default:
+                    currentStateTV.setText("Fail to get mode");
+                    break;
+            }
+
+             silentIB.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    NotificationManager notificationManager =
+                            (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                    // the below code is to check the permission that the access notification policy settings from users device..
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                            && !notificationManager.isNotificationPolicyAccessGranted()) {
+
+                        Intent intent = new Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
+
+                        startActivity(intent);
+                    }
+                    // set ringer mode here will sets your ringer mode to silent mode
+
+                   // currentStateTV.setText("Silent Mode Activated..");
+                }
+            });
+        }
+
+    }
+
+
+
+
+MapsActivity
+
+package com.example.app2;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentActivity;
+
+import android.Manifest;
+import android.app.PendingIntent;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.os.Build;
+import android.os.Bundle;
+import android.util.Log;
+import android.widget.Toast;
+
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofencingClient;
+import com.google.android.gms.location.GeofencingRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMapLongClickListener {
+
+    private static final String TAG = "MapsActivity";
+
+    private GoogleMap mMap;
+    private GeofencingClient geofencingClient;
+    private GeofenceHelper geofenceHelper;
+
+    private float GEOFENCE_RADIUS = 200;
+    private String GEOFENCE_ID = "Geofence";
+
+    private final int FINE_LOCATION_ACCESS_REQUEST_CODE = 10001;
+    private int BACKGROUND_LOCATION_ACCESS_REQUEST_CODE = 10002;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_maps);
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
+        geofencingClient = LocationServices.getGeofencingClient(this);
+        geofenceHelper = new GeofenceHelper(this);
+
+    }
+
+    /**
+     * Manipulates the map once available.
+     * This callback is triggered when the map is ready to be used.
+     * This is where we can add markers or lines, add listeners or move the camera. In this case,
+     * we just add a marker near Sydney, Australia.
+     * If Google Play services is not installed on the device, the user will be prompted to install
+     * it inside the SupportMapFragment. This method will only be triggered once the user has
+     * installed Google Play services and returned to the app.
+     */
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+
+        // Add a marker in Sydney and move the camera
+        LatLng sjp = new LatLng(12.9804279, 77.5865788);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sjp, 16));
+
+        enableUserLocation();
+
+        mMap.setOnMapLongClickListener(this);
+    }
+
+    private void enableUserLocation() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mMap.setMyLocationEnabled(true);
+        } else {
+            //Ask for permission
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                //We need to show user a dialog for displaying why the permission is needed and then ask for the permission...
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, FINE_LOCATION_ACCESS_REQUEST_CODE);
+            } else {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, FINE_LOCATION_ACCESS_REQUEST_CODE);
+
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == FINE_LOCATION_ACCESS_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                //We have the permission
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    // TODO: Consider calling
+                    //    ActivityCompat#requestPermissions
+                    // here to request the missing permissions, and then overriding
+                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                    //                                          int[] grantResults)
+                    // to handle the case where the user grants the permission. See the documentation
+                    // for ActivityCompat#requestPermissions for more details.
+                    return;
+                }
+                mMap.setMyLocationEnabled(true);
+            } else {
+                //We do not have the permission..
+            }
+        }
+
+        if (requestCode == BACKGROUND_LOCATION_ACCESS_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                //We have the permission
+                Toast.makeText(this, "You can add geofences...", Toast.LENGTH_SHORT).show();
+            } else {
+                //We do not have the permission..
+                Toast.makeText(this, "Background location access is neccessary for geofences to trigger...", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    @Override
+    public void onMapLongClick(LatLng latLng) {
+        if (Build.VERSION.SDK_INT >= 29) {
+            //We need background permission
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                handleMapLongClick(latLng);
+            } else {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
+                    //We show a dialog and ask for permission
+                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, BACKGROUND_LOCATION_ACCESS_REQUEST_CODE);
+                } else {
+                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, BACKGROUND_LOCATION_ACCESS_REQUEST_CODE);
+                }
+            }
+
+        } else {
+            handleMapLongClick(latLng);
+        }
+
+    }
+
+    private void handleMapLongClick(LatLng latLng) {
+        mMap.clear();
+        addMarker(latLng);
+        addCircle(latLng, GEOFENCE_RADIUS);
+        addGeofence(latLng, GEOFENCE_RADIUS);
+    }
+
+    private void addGeofence(LatLng latLng, float radius) {
+        Geofence geofence = geofenceHelper.getGeofence(GEOFENCE_ID, latLng, radius, Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT);
+        GeofencingRequest geofencingRequest = geofenceHelper.getGeofencingRequest(geofence);
+        PendingIntent pendingIntent = geofenceHelper.getPendingIntent();
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        geofencingClient.addGeofences(geofencingRequest, pendingIntent)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "onSuccess: Geofence Added...");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        String errorMessage = geofenceHelper.getErrorString(e);
+                        Log.d(TAG, "onFailure: " + errorMessage);
+                    }
+                });
+    }
+
+    private void addMarker(LatLng latLng) {
+        MarkerOptions markerOptions = new MarkerOptions().position(latLng);
+        mMap.addMarker(markerOptions);
+    }
+
+    private void addCircle(LatLng latLng, float radius) {
+        CircleOptions circleOptions = new CircleOptions();
+        circleOptions.center(latLng);
+        circleOptions.radius(radius);
+        circleOptions.strokeColor(Color.argb(255, 255, 0,0));
+        circleOptions.fillColor(Color.argb(64, 255, 0,0));
+        circleOptions.strokeWidth(4);
+        mMap.addCircle(circleOptions);
+    }
+}
+
+
+
+GeofenceHelper
+
+package com.example.app2;
+
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.ContextWrapper;
+import android.content.Intent;
+
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofenceStatusCodes;
+import com.google.android.gms.location.GeofencingRequest;
+import com.google.android.gms.maps.model.LatLng;
+
+public class GeofenceHelper extends ContextWrapper {
+
+    private static final String TAG = "GeofenceHelper";
+    PendingIntent pendingIntent;
+
+    public GeofenceHelper(Context base) { super(base); }
+
+    public GeofencingRequest getGeofencingRequest(Geofence geofence) {
+        return new GeofencingRequest.Builder()
+                .addGeofence(geofence)
+                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+                .build();
+    }
+
+    public Geofence getGeofence(String ID, LatLng latLng, float radius, int transitionTypes) {
+        return new Geofence.Builder()
+                .setCircularRegion(latLng.latitude, latLng.longitude, radius)
+                .setRequestId(ID)
+                .setTransitionTypes(transitionTypes)
+                .setLoiteringDelay(5000)
+                .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                .build();
+    }
+
+    public PendingIntent getPendingIntent() {
+        if (pendingIntent != null) {
+            return pendingIntent;
+        }
+        Intent intent = new Intent(this, NewReciever.class);
+        pendingIntent = PendingIntent.getBroadcast(this, 2607, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        return pendingIntent;
+    }
+    public String getErrorString(Exception e) {
+        if (e instanceof ApiException) {
+            ApiException apiException = (ApiException) e;
+            switch (apiException.getStatusCode()) {
+                case GeofenceStatusCodes
+                        .GEOFENCE_NOT_AVAILABLE:
+                    return "GEOFENCE_NOT_AVAILABLE";
+                case GeofenceStatusCodes
+                        .GEOFENCE_TOO_MANY_GEOFENCES:
+                    return "GEOFENCE_TOO_MANY_GEOFENCES";
+                case GeofenceStatusCodes
+                        .GEOFENCE_TOO_MANY_PENDING_INTENTS:
+                    return "GEOFENCE_TOO_MANY_PENDING_INTENTS";
+            }
+        }
+        return e.getLocalizedMessage();
+    }
+}
+
+
+
+
+NewReciever
+
+
+package com.example.app2;
+
+import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.media.AudioManager;
+import android.util.Log;
+import android.widget.Toast;
+
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofencingEvent;
+
+import java.util.List;
+
+public class NewReciever extends BroadcastReceiver {
+
+    private static final String TAG = "NewReceiver";
+    public static int check;
+
+    @SuppressLint("LongLogTag")
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        // TODO: This method is called when the BroadcastReceiver is receiving
+        // an Intent broadcast.
+
+        NotificationHelper notificationHelper = new NotificationHelper(context);
+
+        GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
+        AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+
+        if (geofencingEvent.hasError()) {
+            Log.d(TAG, "onReceive: Error receiving geofence event...");
+            return;
+        }
+
+        List<Geofence> geofenceList = geofencingEvent.getTriggeringGeofences();
+        for (Geofence geofence : geofenceList) {
+            Log.d(TAG, "onReceive: " + geofence.getRequestId());
+        }
+//      Location location = geofencingEvent.getTriggeringLocation();
+        int transitionType = geofencingEvent.getGeofenceTransition();
+       if (transitionType == Geofence.GEOFENCE_TRANSITION_ENTER)
+        {
+            audioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+            notificationHelper.sendHighPriorityNotification("GEOFENCE_TRANSITION_ENTER", "", MapsActivity.class);
+            Toast.makeText(context,"now enterd the geofence and in silent mode",Toast.LENGTH_SHORT).show();
+        }
+        if (transitionType == Geofence.GEOFENCE_TRANSITION_EXIT)
+        {
+            audioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+            notificationHelper.sendHighPriorityNotification("GEOFENCE_TRANSITION_EXIT", "", MapsActivity.class);
+            Toast.makeText(context,"now exited the geofence and in normal mode",Toast.LENGTH_SHORT).show();
+        }
+        else
+        {
+            //Log Error
+            Log.e(TAG, String.format("Unknoen transition : %d", transitionType));
+            //No need to do anything else
+            return;
+        }
+
+    }
+}
+
+
+NotificationHelper
+
+
+
+package com.example.app2;
+
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.ContextWrapper;
+import android.content.Intent;
+import android.graphics.Color;
+import android.os.Build;
+
+import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+
+import java.util.Random;
+
+public class NotificationHelper extends ContextWrapper {
+
+    private static final String TAG = "NotificationHelper";
+
+    public NotificationHelper(Context base) {
+        super(base);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            createChannels();
+        }
+    }
+
+    private String CHANNEL_NAME = "High priority channel";
+    private String CHANNEL_ID = "com.example.notifications" + CHANNEL_NAME;
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void createChannels() {
+        NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH);
+        notificationChannel.enableLights(true);
+        notificationChannel.enableVibration(true);
+        notificationChannel.setDescription("this is the description of the channel.");
+        notificationChannel.setLightColor(Color.RED);
+        notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        manager.createNotificationChannel(notificationChannel);
+    }
+
+    public void sendHighPriorityNotification(String title, String body, Class activityName) {
+
+        Intent intent = new Intent(this, activityName);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 267, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+//              .setContentTitle(title)
+//              .setContentText(body)
+                .setSmallIcon(R.drawable.ic_launcher_background)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setStyle(new NotificationCompat.BigTextStyle().setSummaryText("summary").setBigContentTitle(title).bigText(body))
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .build();
+
+        NotificationManagerCompat.from(this).notify(new Random().nextInt(), notification);
+    }
+
+}
+
+
+
+
